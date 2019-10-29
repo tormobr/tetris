@@ -4,7 +4,8 @@ import random
 COLORS = [(255, 0, 0) , (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255)]
 
 class T:
-    def __init__(self):
+    def __init__(self, ID):
+        self.ID = ID
         self.size = 50
         self.height = 0
         self.width = 5

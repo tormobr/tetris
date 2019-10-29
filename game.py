@@ -6,6 +6,7 @@ pygame.init()
 class game:
 
     def __init__(self):
+        self.current_id = 1
         self.block_size = 50
         self.grid_width = 10
         self.grid_height = 20
@@ -18,12 +19,11 @@ class game:
         self.grid = [[0 for i in range(self.screen_width // self.block_size)]
                     for j in range(self.screen_height // self.block_size)]
         self.X_image = pygame.image.load("images/X.png")
-        self.t = T()
         self.pieces = []
         
     
     def display_background(self, x, y):
-        self.screen.blit(pygame.transform.scale(self.X_image, (50, 50)), (x, y))
+        self.screen.blit(pygame.transform.scale(self.X_image, (self.block_size, self.block_size)), (x, y))
 
     def display_pieces(self):
         for piece in self.pieces:
@@ -34,14 +34,14 @@ class game:
     def legal_move(self, x, y, current):
         ret_val = True
         stopped = False
-        #print(current.rects)
+
         for rect in current.rects:
             if rect.left + x > self.grid_width-1 or rect.left + x < 0:
                 ret_val = False
             elif rect.top + y > self.grid_height-1 or rect.top + y < 0:
                 ret_val = False
                 stopped = True
-            elif self.grid[rect.top + y][rect.left + x] == 1:
+            elif self.grid[rect.top + y][rect.left + x] != 0:
                 ret_val = False
                 if x == 0:
                     stopped = True
@@ -49,7 +49,18 @@ class game:
         if stopped:
             for rect in current.rects:
                 self.spawn = True
-                self.grid[rect.top][rect.left] = 1
+                self.grid[rect.top][rect.left] = current.ID
+
+            for i, y in enumerate(self.grid):
+                filled = True
+                for x in y:
+                    if x == 0:
+                        filled = False
+                if filled:
+                    for piece in self.pieces:
+                        if piece.ID in y:
+                            self.pieces.remove(piece)
+                    self.grid[i] = [0 for i in range(self.grid_width)]
 
         return ret_val
 
@@ -64,7 +75,8 @@ class game:
         while not self.done:
             clock.tick(50)
             if self.spawn:
-                self.pieces.append(T())
+                self.pieces.append(T(self.current_id))
+                self.current_id += 1
                 current = self.pieces[-1]
                 self.spawn = False
 
@@ -82,9 +94,13 @@ class game:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
-                        move_left = True
+                        if self.legal_move(-1, 0, current):
+                            current.move(-1, 0)
+                        #move_left = True
                     if event.key == pygame.K_RIGHT:
-                        move_right = True
+                        if self.legal_move(1, 0, current):
+                            current.move(1, 0)
+                        #move_right = True
                     if event.key == pygame.K_DOWN:
                         if self.legal_move(0, 1, current):
                             current.move(0, 1)
